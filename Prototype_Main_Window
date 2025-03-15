@@ -1,0 +1,538 @@
+# from tkinter import *
+# from tkinter import ttk
+# from customtkinter import *
+# from HOME_WINDOW_CONSTANTS import *
+# from FUNCTIONS import *
+# from NEW_POST_TAB_CONSTANTS import *
+# from PIL import ImageTk, Image
+# import pandas as pd
+# from pathlib import Path
+
+# DATA_DIR = Path("data")
+# POSTS_FILE = DATA_DIR / "posts.csv"
+# REACTIONS_FILE = DATA_DIR / "reactions.csv"
+# DEFAULT_IMAGE = "HOME_WINDOW_ICON.jpg"  # Create this image or modify path
+
+
+
+# # ======================== DATA SETUP ========================
+# DATA_DIR.mkdir(exist_ok=True)
+
+# try:
+#     posts_df = pd.read_csv(POSTS_FILE)
+# except FileNotFoundError:
+#     posts_df = pd.DataFrame(columns=[
+#         'post_id', 'user_id', 'title', 'content', 'subdistrict',
+#         'city', 'country', 'tags', 'created_at', 'media_path'
+#     ])
+
+# try:
+#     reactions_df = pd.read_csv(REACTIONS_FILE)
+# except FileNotFoundError:
+#     reactions_df = pd.DataFrame(columns=[
+#         'reaction_id', 'user_id', 'post_id', 'comment_id',
+#         'reaction_type', 'created_at'
+#     ])
+
+# def save_data():
+#     posts_df.to_csv(POSTS_FILE, index=False)
+#     reactions_df.to_csv(REACTIONS_FILE, index=False)
+
+# # ======================== CORE FUNCTIONS ========================
+# def stat_adder(post_id=None, reaction_type='like'):
+#     global reactions_df
+#     user_id = 1  # Replace with actual user ID
+    
+#     existing = reactions_df[
+#         (reactions_df['user_id'] == user_id) & 
+#         (reactions_df['post_id'] == post_id) 
+#     ]
+    
+#     if not existing.empty:
+#         reactions_df = reactions_df.drop(existing.index)
+    
+#     if existing.empty or existing.iloc[0]['reaction_type'] != reaction_type:
+#         new_reaction = {
+#             'reaction_id': len(reactions_df) + 1,
+#             'user_id': user_id,
+#             'post_id': post_id,
+#             'comment_id': None,
+#             'reaction_type': reaction_type,
+#             'created_at': pd.Timestamp.now()
+#         }
+#         reactions_df = pd.concat([reactions_df, pd.DataFrame([new_reaction])], ignore_index=True)
+    
+#     save_data()
+#     update_reaction_display(post_id)
+
+# def update_reaction_display(post_id=None):
+#     for widget in comments_section_frame.winfo_children():
+#         if hasattr(widget, 'post_id') and (post_id is None or widget.post_id == post_id):
+#             likes = len(reactions_df[(reactions_df['post_id'] == widget.post_id) & 
+#                                    (reactions_df['reaction_type'] == 'like')])
+#             dislikes = len(reactions_df[(reactions_df['post_id'] == widget.post_id) & 
+#                                       (reactions_df['reaction_type'] == 'dislike')])
+#             widget.reaction_label.configure(text=f"👍 {likes} 👎 {dislikes}")
+
+# # ======================== POST MANAGEMENT ========================
+# def create_post():
+#     global posts_df
+#     new_post = {
+#         'post_id': len(posts_df) + 1,
+#         'user_id': 1,
+#         'title': post_title_entry.get(),
+#         'content': description_textbox.get("1.0", END).strip(),
+#         'subdistrict': location_dropdown.get(),
+#         'city': "London",
+#         'country': "UK",
+#         'tags': "test",
+#         'created_at': pd.Timestamp.now(),
+#         'media_path': ""
+#     }
+    
+#     posts_df = pd.concat([posts_df, pd.DataFrame([new_post])], ignore_index=True)
+#     save_data()
+#     add_post_to_ui(new_post)
+#     clear_post_fields()
+#     messagebox.showinfo("Success", "Post created successfully!")
+
+# def clear_post_fields():
+#     post_title_entry.delete(0, END)
+#     description_textbox.delete("1.0", END)
+#     location_dropdown.set("")
+
+# def add_post_to_ui(post):
+#     post_frame = CTkFrame(master=comments_section_frame)
+#     post_frame.pack(fill="x", pady=5)
+#     post_frame.post_id = post['post_id']
+    
+#     # Post content
+#     CTkLabel(post_frame, text=post['title'], font=("Arial", 14, "bold")).pack(anchor="w")
+#     CTkLabel(post_frame, text=post['content'], wraplength=500).pack(anchor="w")
+#     CTkLabel(post_frame, 
+#             text=f"{post['subdistrict']}, {post['city']}, {post['country']}",
+#             text_color="gray").pack(anchor="w")
+    
+#     # Reactions
+#     reaction_frame = CTkFrame(post_frame)
+#     reaction_frame.pack(anchor="e")
+    
+#     likes = len(reactions_df[(reactions_df['post_id'] == post['post_id']) & 
+#                            (reactions_df['reaction_type'] == 'like')])
+#     dislikes = len(reactions_df[(reactions_df['post_id'] == post['post_id']) & 
+#                               (reactions_df['reaction_type'] == 'dislike')])
+    
+#     reaction_label = CTkLabel(reaction_frame, text=f"👍 {likes} 👎 {dislikes}")
+#     reaction_label.pack(side="left", padx=5)
+    
+#     CTkButton(reaction_frame, text="Agree", width=80,
+#              command=lambda pid=post['post_id']: stat_adder(pid, 'like')).pack(side="left", padx=5)
+#     CTkButton(reaction_frame, text="Disagree", width=80,
+#              command=lambda pid=post['post_id']: stat_adder(pid, 'dislike')).pack(side="left", padx=5)
+    
+#     post_frame.reaction_label = reaction_label
+
+
+# def stat_adder():
+#     with open("LikeDislikeStats.txt", "w") as stats_file:
+#         if stat_type.get() == "0":  # checks if the radiobutton is set to 'agree'-AG🟨
+#             stats_file.write(str(int(agree_count) + 1) + "\n")
+#             stats_file.write(str(int(disagree_count)))
+#             agree_stat.configure(text=("Agree:", str(int(agree_count) + 1)))
+#             disagree_stat.configure(text=("Agree:", disagree_count))
+#         elif stat_type.get() == "1":
+#             stats_file.write(str(int(agree_count)) + "\n")
+#             stats_file.write(str(int(disagree_count) + 1))
+#             disagree_stat.configure(text=("Agree:", str(int(disagree_count) + 1)))
+#             agree_stat.configure(text=("Agree:", agree_count))
+
+# """LikeDislikeStats file is in the format of: [Likes]
+# [Dislikes] -AG🟨
+# """
+# with open("LikeDislikeStats.txt", "r") as stats_file:
+#     agree_count = stats_file.readline().strip()
+#     disagree_count = stats_file.readline().strip()
+
+# home_window = Tk()
+# home_window.configure(padx=5, pady=5)
+# home_window.geometry(f"{WINDOW_WIDTH+50}x{WINDOW_HEIGHT}+0+0")
+# home_window.title(WINDOW_TITLE)
+# home_window.iconbitmap(WINDOW_ICONBITMAP)
+
+# tab_view = CTkTabview(master=home_window)
+# tab_view.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+# tab_view.grid_rowconfigure(0, weight=1)
+# home_window.grid_columnconfigure(0, weight=1)
+# # create tabs
+# tab_view.add(TRENDS)
+# tab_view.add(NEW)
+# tab_view.add(RESPONSES)
+# tab_view.add(SOLUTIONS)
+# tab_view.add(YOU)
+# # tab_view.add('HELLO!!')
+# tab_view.tab(TRENDS).configure(height=TAB_HEIGHT, width=TAB_WIDTH)  # just resizing all tabs, so that they are all the same size
+# tab_view.tab(NEW).configure(height=TAB_HEIGHT, width=TAB_WIDTH)  # needed to resize this one initially, as the image-display frame was being cut off
+# tab_view.tab(RESPONSES).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
+# tab_view.tab(SOLUTIONS).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
+# tab_view.tab(YOU).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
+
+
+
+
+
+# home_frame = Frame(master=tab_view.tab(TRENDS), background=FRAME_BACKGROUND, width=FRAME_WIDTH, height=FRAME_HEIGHT)
+# home_frame.grid_configure(row=0, column=0, sticky=NSEW)
+
+# home_image = Image.open(DEFAULT_IMAGE).resize(RESIZED_IMAGE_TUPLE, Image.LANCZOS)  # home_image = Image.open(DEFAULT_IMAGE).transform((200, 200), method= 'LANCZOS')
+# home_image = ImageTk.PhotoImage(home_image)
+
+# home_image_label = Label(master=home_frame, width=HOME_IMAGE_LABEL_WIDTH, height=HOME_IMAGE_LABEL_HEIGHT,  # TEMPORARILY USING CANVAS PROPERTIES TO TEST FUNCTIONALITY
+#                          background=HOME_IMAGE_LABEL_BACKGROUND, image=home_image  #'LOGIN_ICON.jpg'
+#                          )
+# home_image_label.grid(row=HOME_IMAGE_LABEL_ROW, column=HOME_IMAGE_LABEL_COLUMN, rowspan=HOME_IMAGE_LABEL_ROWSPAN,
+#                       columnspan=HOME_IMAGE_LABEL_COLUMNSPAN, sticky=HOME_IMAGE_LABEL_STICKY)
+
+# reactions_frame = Frame(master=home_frame, height=REACTIONS_FRAME_HEIGHT, width=REACTIONS_FRAME_WIDTH,
+#                         background=REACTION_FRAME_BACKGROUND)
+
+# reactions_frame.place(relx=REACTION_FRAME_RELX, rely=REACTION_FRAME_RELY)
+
+# stat_type = StringVar()  # Need this to check the value of the radiobuttons-AG🟨
+# agree_button = Radiobutton(
+#     master=reactions_frame,
+#     foreground=AGREE_BUTTON_BACKGROUND,
+#     activebackground=AGREE_BUTTON_BACKGROUND,
+#     width=7,  # REACTION_BUTTON_WIDTH,
+#     text='AGREE', variable=stat_type, value=0,  # Added variable=stat_type -AG🟨
+#     command=stat_adder  # just added the command after to the agree/disagree buttons, which AG🟨 forgot --AA🟥
+# )
+# agree_button.grid(row=0, column=0)
+
+# disagree_button = Radiobutton(master=reactions_frame,
+#                               foreground=DISAGREE_BUTTON_BACKGROUND,
+#                               activebackground=DISAGREE_BUTTON_BACKGROUND,
+#                               width=7,
+#                               #   width=REACTIONS_FRAME_WIDTH,
+#                               text='DISAGREE', value=1,
+#                               command=stat_adder  # just added the command after to the agree/disagree buttons, which AG🟨 forgot --AA🟥
+#                               )
+# disagree_button.grid(row=1, column=0)
+
+# agree_stat = CTkLabel(master=reactions_frame,  # label for agree stat -AG🟨
+#                       text=("Agree:", agree_count))
+# agree_stat.grid(row=0, column=0)
+
+# disagree_stat = CTkLabel(master=reactions_frame,  # label for disagree stat -AG🟨
+#                          text=("Disagree:", disagree_count))
+# disagree_stat.grid(row=1, column=0)
+
+# info_button = Button(master=reactions_frame,
+#                      # foreground=INFO_BUTTON_BACKGROUND,
+#                      activebackground=INFO_BUTTON_BACKGROUND,
+#                      width=10,
+#                      #   width=REACTIONS_FRAME_WIDTH,
+#                      text='INFO')
+# info_button.grid(row=2, column=0)
+
+# question_button = Button(master=reactions_frame,
+#                          foreground=QUESTION_BUTTON_BACKGROUND,
+#                          activebackground=QUESTION_BUTTON_BACKGROUND,
+#                          width=10,
+#                          #   width=REACTIONS_FRAME_WIDTH,
+#                          text='WHAT?')
+# question_button.grid(row=3, column=0)
+
+# share_button = Button(master=reactions_frame,
+#                       foreground='#000000',
+#                       activebackground=SHARE_BUTTON_BACKGROUND,
+#                       width=10,
+#                       #   width=REACTIONS_FRAME_WIDTH, Doesn't work for some reason: all the text becomes hidden
+#                       text='SHARE')
+# share_button.grid(row=4, column=0)
+
+# # Image Info Label
+# image_info_label = Label(
+#     master=home_frame,
+#     text=IMAGE_INFO_LABEL_TEXT,
+#     background=IMAGE_INFO_LABEL_BACKGROUND,
+#     height=IMAGE_INFO_LABEL_HEIGHT,
+#     width=IMAGE_INFO_LABEL_WIDTH
+# )
+# image_info_label.grid(
+#     row=IMAGE_INFO_LABEL_ROW,
+#     column=IMAGE_INFO_LABEL_COLUMN,
+#     sticky=IMAGE_INFO_LABEL_STICKY,
+#     padx=IMAGE_INFO_LABEL_PADX,
+#     pady=IMAGE_INFO_LABEL_PADY
+# )
+
+# # Comments Section Frame
+# comments_section_frame = CTkScrollableFrame(
+#     master=home_frame,
+#     width=COMMENTS_SECTION_FRAME_WIDTH,
+#     height=COMMENTS_SECTION_FRAME_HEIGHT,
+#     fg_color=COMMENTS_SECTION_FRAME_BACKGROUND,
+#     scrollbar_button_color=COMMENTS_SECTION_SCROLLBAR_COLOR,
+#     scrollbar_button_hover_color=COMMENTS_SECTION_SCROLLBAR_HOVER_COLOR
+# )
+
+# comments_section_frame.grid(
+#     row=IMAGE_INFO_LABEL_ROW + 1,  # Place directly below the image_info_label
+#     column=COMMENTS_SECTION_FRAME_COLUMN,
+#     sticky=COMMENTS_SECTION_FRAME_STICKY,
+#     padx=COMMENTS_SECTION_FRAME_PADX,
+#     pady=COMMENTS_SECTION_FRAME_PADY
+# )
+
+# for idx, comment in enumerate(example_comments):
+#     comment_frame = CTkFrame(
+#         master=comments_section_frame,
+#         fg_color=COMMENT_FRAME_BACKGROUND,
+#         corner_radius=COMMENT_FRAME_CORNER_RADIUS
+#     )
+#     comment_frame.pack(fill="x", pady=COMMENT_FRAME_PADY)
+
+#     user_label = CTkLabel(
+#         master=comment_frame,
+#         text=comment["user"],
+#         font=COMMENT_USER_FONT,
+#         text_color=COMMENT_USER_TEXT_COLOR
+#     )
+#     user_label.pack(anchor="w", padx=COMMENT_PADX)
+
+#     comment_label = CTkLabel(
+#         master=comment_frame,
+#         text=comment["comment"],
+#         font=COMMENT_TEXT_FONT,
+#         text_color=COMMENT_TEXT_COLOR,
+#         wraplength=COMMENTS_SECTION_FRAME_WIDTH - 40
+#     )
+#     comment_label.pack(anchor="w", padx=COMMENT_PADX)
+
+#     # Reaction buttons frame
+#     reaction_frame = CTkFrame(comment_frame, fg_color="transparent")
+#     reaction_frame.pack(anchor="e", padx=5, pady=5)
+
+#     # Thumbs up button
+#     thumbs_up_button_i = 'thumbs_up_button' + str(idx)
+#     thumbs_down_button_i = 'thumbs_up_button' + str(idx)
+
+#     thumbs_up_button_i = CTkButton(
+#         master=reaction_frame,
+#         text="👍 0",
+#         width=COMMENT_REACTION_BUTTON_WIDTH,
+#         height=COMMENT_REACTION_BUTTON_HEIGHT,
+#         font=COMMENT_REACTION_BUTTON_FONT,
+#         fg_color=COMMENT_REACTION_BUTTON_BG,
+#         hover_color=COMMENT_REACTION_BUTTON_HOVER_COLOR,
+#         bg_color=COMMENT_REACTION_BUTTON_BG,
+#         command=lambda: update_reaction(thumbs_up_button_i)
+#     )
+#     thumbs_up_button_i.pack(side="left", padx=COMMENT_REACTION_BUTTON_SPACING)
+
+#     # Thumbs down button
+#     thumbs_down_button_i = CTkButton(
+#         master=reaction_frame,
+#         text="👎 0",
+#         width=COMMENT_REACTION_BUTTON_WIDTH,
+#         height=COMMENT_REACTION_BUTTON_HEIGHT,
+#         font=COMMENT_REACTION_BUTTON_FONT,
+#         fg_color=COMMENT_REACTION_BUTTON_BG,
+#         hover_color=COMMENT_REACTION_BUTTON_HOVER_COLOR,
+#         bg_color=COMMENT_REACTION_BUTTON_BG,
+#         command=lambda: update_reaction(thumbs_down_button_i)
+#     )
+#     thumbs_down_button_i.pack(side="left", padx=COMMENT_REACTION_BUTTON_SPACING)
+
+
+
+# next_post_button = Button(
+#     master = tab_view.tab(TRENDS),
+#     text= 'Next Post'
+# )
+# next_post_button.grid(
+#     row = 2,
+#     column= 0,
+#     sticky= 'NSEW',
+#     pady= 10,
+#     padx= 10
+# )
+
+# '''CODE FOR NEW POST TAB'''
+# '''CODE FOR NEW POST TAB'''
+# '''CODE FOR NEW POST TAB'''
+
+# post_frame = Frame(
+#     master=tab_view.tab(NEW),
+#     background=NEW_POST_BACKGROUND,
+#     width=NEW_POST_FRAME_WIDTH,
+#     height=NEW_POST_FRAME_HEIGHT,
+#     border=NEW_POST_FRAME_BORDER,
+#     cursor=NEW_POST_FRAME_CURSOR
+# )
+# post_frame.place(
+#     relx=NEW_POST_FRAME_RELX,
+#     rely=NEW_POST_FRAME_RELY
+# )
+# picture_preview_canvas = Canvas(
+#     master=post_frame,
+#     width=PICTURE_PREVIEW_WIDTH,
+#     height=PICTURE_PREVIEW_HEIGHT
+# )
+# picture_preview_canvas.create_text(
+#     PICTURE_PREVIEW_WIDTH / 2,
+#     PICTURE_PREVIEW_HEIGHT / 2,
+#     text=PICTURE_PREVIEW_TEXT
+# )
+# picture_preview_canvas.grid(
+#     row=PICTURE_PREVIEW_ROW,
+#     column=PICTURE_PREVIEW_COLUMN,
+#     rowspan=PICTURE_PREVIEW_ROWSPAN,
+#     columnspan=PICTURE_PREVIEW_COLUMNSPAN,
+#     padx=PICTURE_PREVIEW_PADX,
+#     pady=PICTURE_PREVIEW_PADY
+# )
+
+# upload_button = Button(
+#     master=tab_view.tab(NEW),
+#     text=UPLOAD_BUTTON_TEXT,
+#     width=UPLOAD_BUTTON_WIDHT,
+#     height=UPLOAD_BUTTON_HEIGHT,
+#     background=UPLOAD_BUTTON_BACKGROUND,
+#     fg=UPLOAD_BUTTON_FOREGROUND,
+#     command=lambda: open_file(picture_preview_canvas)
+# )
+# upload_button.place(
+#     relx=UPLOAD_BUTTON_RELX,
+#     rely=UPLOAD_BUTTON_RELY
+# )
+# cancel_upload_button = Button(
+#     master=tab_view.tab(NEW),  # Master frame (tab in this case)
+#     text=CANCEL_UPLOAD_BUTTON_TEXT,  # Button text
+#     width=CANCEL_UPLOAD_BUTTON_WIDTH,  # Button width
+#     height=CANCEL_UPLOAD_BUTTON_HEIGHT,  # Button height
+#     background=CANCEL_UPLOAD_BUTTON_BACKGROUND,  # Background color
+#     fg=CANCEL_UPLOAD_BUTTON_FOREGROUND,  # Text color
+#     command=lambda: cancel_upload(picture_preview_canvas)  # Command to execute
+# )
+
+# # Place the button in the window
+# cancel_upload_button.place(
+#     relx=CANCEL_UPLOAD_BUTTON_RELX,  # Relative x position
+#     rely=CANCEL_UPLOAD_BUTTON_RELY  # Relative y position
+# )
+
+# post_description_frame = Frame(master=post_frame, background=POST_DESCRIPTION_FRAME_BACKGROUND,
+#                                width=POST_DESCRIPTION_FRAME_WIDTH,
+#                                height=POST_DESCRIPTION_FRAME_HEIGHT)
+# post_description_frame.grid(row=POST_DESCRIPTION_FRAME_ROW, column=POST_DESCRIPTION_FRAME_COLUMN,
+#                             sticky=POST_DESCRIPTION_FRAME_STICKY)
+
+# location_dropdown = CTkComboBox(master=post_description_frame, values=LOCATION_DROPDOWN_VALUES)
+# location_dropdown.grid(row=LOCATION_DROPDOWN_ROW, column=LOCATION_DROPDOWN_COLUMN, sticky=LOCATION_DROPDOWN_STICKY)
+
+# post_title_label = Label(
+#     master=post_description_frame,
+#     relief=POST_TITLE_ENTRY_RELIEF,
+#     borderwidth=POST_TITLE_ENTRY_BORDERWIDTH,  # has more functionality that CtkEntry
+#     width=POST_TITLE_ENTRY_WIDTH,
+#     text=POST_TITLE_LABEL_TEXT
+# )
+# post_title_label.grid(
+#     row=POST_TITLE_ENTRY_ROW - 1,
+#     column=POST_TITLE_ENTRY_COLUMN,
+#     sticky=NSEW,
+#     padx=POST_TITLE_ENTRY_PADX,
+#     pady=POST_TITLE_ENTRY_PADY
+# )
+# post_title_entry = Entry(
+#     master=post_description_frame,
+#     relief=POST_TITLE_ENTRY_RELIEF,
+#     borderwidth=POST_TITLE_ENTRY_BORDERWIDTH,  # has more functionality that CtkEntry
+#     width=POST_TITLE_ENTRY_WIDTH
+# )
+# post_title_entry.grid(
+#     row=POST_TITLE_ENTRY_ROW,
+#     column=POST_TITLE_ENTRY_COLUMN,
+#     sticky=NSEW,
+#     padx=POST_TITLE_ENTRY_PADX,
+#     pady=POST_TITLE_ENTRY_PADY
+# )
+
+# description_label = Label(
+#     master=post_description_frame,
+#     relief=POST_TITLE_ENTRY_RELIEF,
+#     borderwidth=DESCRIPTION_LABEL_BORDERWIDTH,
+#     width=DESCRIPTION_LABEL_WIDTH,
+#     text=DESCRIPTION_LABEL_TEXT
+# )
+# description_label.grid(
+#     row=DESCRIPTION_LABEL_ROW,
+#     column=DESCRIPTION_LABEL_COLUMN,
+#     sticky=DESCRIPTION_LABEL_STICKY,
+#     padx=DESCRIPTION_LABEL_PADX,
+#     pady=DESCRIPTION_LABEL_PADY
+# )
+
+# description_textbox = CTkTextbox(
+#     master=post_description_frame,
+#     width=DESCRIPTION_TEXTBOX_WIDTH,
+#     corner_radius=DESCRIPTION_TEXTBOX_CORNER_RADIUS,
+#     wrap=DESCRIPTION_TEXTBOX_WRAP,
+#     text_color=DESCRIPTION_TEXTBOX_TEXT_COLOUR,
+#     bg_color=DESCRIPTION_TEXTBOX_BACKGROUND,
+#     fg_color=DESCRIPTION_TEXTBOX_FG_COLOUR,
+#     border_color=DESCRIPTION_TEXTBOX_BORDER_COLOUR,
+#     border_width=DESCRIPTION_TEXTBOX_BORDER_WIDTH
+# )
+# description_textbox.grid(
+#     row=DESCRIPTION_TEXTBOX_ROW,
+#     column=DESCRIPTION_TEXTBOX_COLUMN,
+#     sticky=DESCRIPTION_TEXTBOX_STICKY
+# )
+
+# # Create the urgent checkbox
+# urgent_checkbox = CTkCheckBox(
+#     master=post_description_frame,
+#     text=URGENT_CHECKBOX_TEXT,
+#     text_color=URGENT_CHECKBOX_TEXT_COLOR,
+#     fg_color=URGENT_CHECKBOX_FG_COLOR,
+#     border_color=URGENT_CHECKBOX_BORDER_COLOR,
+#     border_width=URGENT_CHECKBOX_BORDER_WIDTH,
+#     width=URGENT_CHECKBOX_WIDTH,
+#     height=URGENT_CHECKBOX_HEIGHT,
+#     corner_radius=URGENT_CHECKBOX_CORNER_RADIUS,
+#     hover_color=URGENT_CHECKBOX_HOVER_COLOR,
+#     bg_color=URGENT_CHECKBOX_BACKGROUND
+# )
+# urgent_checkbox.grid(
+#     row=URGENT_CHECKBOX_ROW,
+#     column=URGENT_CHECKBOX_COLUMN,
+#     sticky=URGENT_CHECKBOX_STICKY
+# )
+
+# petition_button = CTkButton(
+#     master=post_description_frame,  # Master frame
+#     text=PETITION_BUTTON_TEXT,  # Button text
+#     width=PETITION_BUTTON_WIDTH,  # Button width
+#     height=PETITION_BUTTON_HEIGHT,  # Button height
+#     corner_radius=PETITION_BUTTON_CORNER_RADIUS,  # Corner radius
+#     border_width=PETITION_BUTTON_BORDER_WIDTH,  # Border width
+#     fg_color=PETITION_BUTTON_FG_COLOR,  # Foreground color
+#     hover_color=PETITION_BUTTON_HOVER_COLOR,  # Hover color
+#     border_color=PETITION_BUTTON_BORDER_COLOR,  # Border color
+#     text_color=PETITION_BUTTON_TEXT_COLOR,  # Text color
+#     font=PETITION_BUTTON_FONT,  # Font and size
+#     state=PETITION_BUTTON_STATE,  # Button state
+#     hover=PETITION_BUTTON_HOVER  # Enable hover effect
+# )
+
+# # Place the button in the grid
+# petition_button.grid(
+#     row=PETITION_BUTTON_ROW,
+#     column=PETITION_BUTTON_COLUMN,
+#     sticky=PETITION_BUTTON_STICKY
+# )
+# home_window.mainloop()
+
+

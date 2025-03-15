@@ -1,0 +1,24 @@
+LOGIN_WINDOW_ICON = <a href="https://www.freepik.com/free-photo/privacy-safety-security-lock-icon_2767128.htm#fromView=search&page=1&position=3&uuid=be8254da-4bec-4a8b-b146-e945e1d733df&new_detail=true&query=padlock+icon">Image by rawpixel.com on Freepik</a>
+from https://www.youtube.com/watch?v=xu1ZKkgr-hE, I learnt how to:
+    put image in labels,
+    open external applications using tkinter,
+    
+scrollable frame used for the comments section was based on the MyFrame class on:
+https://customtkinter.tomschimansky.com/documentation/widgets/scrollableframe
+
+ALL LINES, CODEBITS OR LOGICAL SEGMENTS THAT HAVE:
+-AG🟨 --> Anna
+-AM🟦 --> Amina
+-AA🟥 --> Afnan
+
+
+stat_adder was a function that chatgpt decided to improve. 
+It was coded by Anna, and now has become update_stat
+
+load_post was also the function coded by Anna, which itself was based on my (Afnan)
+Next_Post_Loader function. My Next_Post_Loader function could only go forwards,
+and had multiple repeating sections. Her next function started the current post index at -1, 
+and took direction as an argument. It could go either forwards or backwards based on the argument
+provided during creation. Hence, she also created the previous post button
+
+ChatGPT also created multiple sub functions that helped create UI/UX elements, improving readability and ease of change.
