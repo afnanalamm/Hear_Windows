@@ -26,6 +26,8 @@ comments_holder_list = []  # Initialize comments_holder_list
 # Constants
 DEFAULT_USER = "You"  # Default username for new comments
 
+'''============================= FUNCTIONS ====================================='''
+
 # Helper Functions
 def create_reaction_buttons(parent, index=None):
     """Creates and packs reaction buttons (thumbs up/down) into the given parent."""
@@ -311,7 +313,7 @@ def cleanup():
     finally:
         main_window.destroy()
 
-
+'''======================== MAIN WINDOW SETUP ========================'''
 
 # Window setup
 main_window = Tk()
@@ -538,6 +540,7 @@ post_comment_button.pack(
     padx=POST_COMMENT_BUTTON_PADX, 
     pady=POST_COMMENT_BUTTON_PADY
 )
+
 
 next_petition_button = Button(
     master = tab_view.tab(TRENDS),
