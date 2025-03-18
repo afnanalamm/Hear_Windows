@@ -1,3 +1,6 @@
-petition_id,user_id,title,content,subdistrict,city,country,tags,created_at,media_path
-1,1,TEST PETITION 7,fast blue car,Tajmahal Road,London,UK,test,2025-03-14 21:58:33.929196,C:/Users/afnan/OneDrive/Pictures/SEP IMAGE.jpg
-2,1,TEST  PETITION 8,good food,Tajmahal Road,London,UK,test,2025-03-14 21:59:10.197955,C:/Users/afnan/OneDrive/Pictures/chicken bbq.jpg
+petition_id,user_id,title,content,subdistrict,city,country,tags,created_at,media_path,num_agree,num_disagree
+1,1,this is the fifth test for today,does this work??? Very anxious...,Tajmahal Road,London,UK,test,2025-03-18 10:13:25.570466,C:/Users/afnan/OneDrive/Pictures/12974.jpg,700,1
+2,1,we're now at the sixth test for today,just populating the petitions list,Tajmahal Road,London,UK,test,2025-03-18 10:14:04.523113,C:/Users/afnan/OneDrive/Pictures/Capture2.PNG,2,3
+3,1,"yep, we've reached the seventh test petition",My hopes are just soooo high for this.....,Tomorrowland,London,UK,test,2025-03-18 10:15:10.141518,C:/Users/afnan/OneDrive/Pictures/background image.jpg,1,0
+4,1,"yep, we've reached the eight  test petition","I'm gonna take a documentatiing ss, then check the trends tab... 0_0",Tomorrowland,London,UK,test,2025-03-18 10:16:07.116467,C:/Users/afnan/OneDrive/Pictures/AUG IMAGE.jpg,0,3
+5,1,"This is the ninth test petition","I'm gonna take a documentatiing ss, then check the trends tab... 0_0",Tomorrowland,London,UK,test,2025-03-18 10:16:22.369933,C:/Users/afnan/OneDrive/Pictures/AUG IMAGE.jpg,0,0

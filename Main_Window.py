@@ -167,11 +167,13 @@ def initialize_dataframes():
     """Initializes dataframes with error handling."""
     global petitions_df, reactions_df, comments_df, all_comments_df
     try:
-        petitions_df = pd.read_csv(PETITIONS_FILE) if PETITIONS_FILE.exists() else pd.DataFrame(columns=[
-            "petition_id", "user_id", "title", "content", "subdistrict", "city", "country", "tags", "created_at", "media_path"
+        petitions_df = pd.read_csv(PETITIONS_FILE, on_bad_lines='warn') if PETITIONS_FILE.exists() else pd.DataFrame(columns=[
+            "petition_id", "user_id", "title", "content", "subdistrict", "city", "country", 
+            "tags", "created_at", "media_path", "num_agree", "num_disagree"
         ])
         reactions_df = pd.read_csv(REACTIONS_FILE) if REACTIONS_FILE.exists() else pd.DataFrame(columns=[
-            "reaction_id", "user_id", "petition_id", "reaction_type", "created_at"
+            "reaction_id", "user_id", "petition_id", 
+            "reaction_type", "created_at"
         ])
         comments_df = pd.read_csv(COMMENTS_FILE) if COMMENTS_FILE.exists() else pd.DataFrame(columns=[
             "petition_id", "user_id", "all_comments_id"
@@ -187,14 +189,14 @@ def initialize_dataframes():
 initialize_dataframes()
 
 # Load like/dislike counts
-try:
-    with open("LikeDislikeStats.txt", "r") as stats_file:
-        agree_count = stats_file.readline().strip() or "0"
-        disagree_count = stats_file.readline().strip() or "0"
-except FileNotFoundError:
-    agree_count, disagree_count = "0", "0"
-    with open("LikeDislikeStats.txt", "w") as stats_file:
-        stats_file.write("0\n0")
+# try:
+#     with open("LikeDislikeStats.txt", "r") as stats_file:
+#         agree_count = stats_file.readline().strip() or "0"
+#         disagree_count = stats_file.readline().strip() or "0"
+# except FileNotFoundError:
+#     agree_count, disagree_count = "0", "0"
+#     with open("LikeDislikeStats.txt", "w") as stats_file:
+#         stats_file.write("0\n0")
 
 
 
@@ -223,18 +225,28 @@ def update_reaction(comment_id, reaction_type, button):
 
 def update_stat(stat_type):
     """Updates agree/disagree counts and saves them to a file."""
-    global agree_count, disagree_count
+    try:
+        if len(petitions_df) == 0:
+            messagebox.showwarning("Warning", "No petitions available")
+            return
 
-    if stat_type == "agree":
-        agree_count = str(int(agree_count) + 1)
-    elif stat_type == "disagree":
-        disagree_count = str(int(disagree_count) + 1)
+        agree_count = petitions_df.at[current_petition_index, "num_agree"]
+        disagree_count = petitions_df.at[current_petition_index, "num_disagree"]
 
-    with open("LikeDislikeStats.txt", "w") as stats_file:
-        stats_file.write(f"{agree_count}\n{disagree_count}")
+        if stat_type == "agree":
+            agree_count += 1
+            petitions_df.at[current_petition_index, "num_agree"] = agree_count
+        elif stat_type == "disagree":
+            disagree_count += 1
+            petitions_df.at[current_petition_index, "num_disagree"] = disagree_count
+        save_data()
+        agree_stat.configure(text=f"Agree: {agree_count}")
+        disagree_stat.configure(text=f"Disagree: {disagree_count}")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to update stats: {e}")
+    # with open("LikeDislikeStats.txt", "w") as stats_file:
+    #     stats_file.write(f"{agree_count}\n{disagree_count}")
 
-    agree_stat.configure(text=f"Agree: {agree_count}")
-    disagree_stat.configure(text=f"Disagree: {disagree_count}")
 
 
 def load_image(path, size):
@@ -295,11 +307,13 @@ def create_petition():
         'country': "UK",
         'tags': "test",
         'created_at': pd.Timestamp.now(),
-        'media_path': filepath
+        'media_path': filepath,
+        'num_agree': 0,
+        'num_disagree': 0
     }
     petitions_df = pd.concat([petitions_df, pd.DataFrame([new_petition])], ignore_index=True)
     save_data()
-    messagebox.showinfo("Success", "Post created successfully!")
+    messagebox.showinfo("Success!", "Post created successfully!")
 
 def cleanup():
     """Clean up resources before closing"""
@@ -378,27 +392,27 @@ reactions_frame.place(
     rely=REACTION_FRAME_RELY
 )
 
-def update_stat(stat_type, agree, disagree):
-    """Updates agree/disagree counts and saves them to a file."""
-    global agree_count, disagree_count
+# def update_stat(stat_type, agree, disagree):
+#     """Updates agree/disagree counts and saves them to a file."""
+#     global agree_count, disagree_count
 
-    if stat_type == "agree":
-        agree_count = str(int(agree_count) + 1)
-    elif stat_type == "disagree":
-        disagree_count = str(int(disagree_count) + 1)
+#     if stat_type == "agree":
+#         agree_count = str(int(agree_count) + 1)
+#     elif stat_type == "disagree":
+#         disagree_count = str(int(disagree_count) + 1)
 
-    with open("LikeDislikeStats.txt", "w") as stats_file:
-        stats_file.write(f"{agree_count}\n{disagree_count}")
+#     with open("LikeDislikeStats.txt", "w") as stats_file:
+#         stats_file.write(f"{agree_count}\n{disagree_count}")
 
-    agree.configure(text=f"Agree: {agree_count}")
-    disagree.configure(text=f"Disagree: {disagree_count}")
+#     agree.configure(text=f"Agree: {agree_count}")
+#     disagree.configure(text=f"Disagree: {disagree_count}")
 
 stat_type = StringVar()  # Need this to check the value of the radiobuttons-AG🟨
 
 # Stats labels
 agree_stat = CTkLabel(
     master=reactions_frame,  # label for agree stat -AG🟨
-    text=("Agree:", agree_count)
+    text=("agree:")#agree_count
 )
 agree_stat.grid(
     row=0,
@@ -407,7 +421,7 @@ agree_stat.grid(
 
 disagree_stat = CTkLabel(
     master=reactions_frame,  # label for disagree stat -AG🟨
-    text=("Disagree:", disagree_count)
+    text=("disagree:")#, disagree_count)
 )
 disagree_stat.grid(
     row=1,
@@ -420,7 +434,7 @@ agree_button = Radiobutton(
     activebackground=AGREE_BUTTON_BACKGROUND,
     width=7,  # REACTION_BUTTON_WIDTH
     text='AGREE', variable=stat_type, value=0,  # Added variable=stat_type -AG🟨
-    command= update_stat('agree', agree_stat, disagree_stat)  # just added the command after to the agree/disagree buttons, which AG🟨 forgot --AA🟥
+    command= lambda: update_stat('agree')#, index = current_petition_index)  # just added the command after to the agree/disagree buttons, which AG🟨 forgot --AA🟥
 )
 agree_button.grid(row=2, column=0)
 
@@ -430,7 +444,7 @@ disagree_button = Radiobutton(
     activebackground=DISAGREE_BUTTON_BACKGROUND,
     width= REACTION_BUTTON_WIDTH,
     text='DISAGREE',variable=stat_type, value=1, #Will not work without variable=stat_type -AG🟨
-    command= lambda: update_stat('disagree', agree_stat, disagree_stat)
+    command= lambda: update_stat('disagree')#, index = current_petition_index)
 )
 disagree_button.grid(row=3, column=0)  # row=3 AG🟨
 
@@ -540,7 +554,6 @@ post_comment_button.pack(
     padx=POST_COMMENT_BUTTON_PADX, 
     pady=POST_COMMENT_BUTTON_PADY
 )
-
 
 next_petition_button = Button(
     master = tab_view.tab(TRENDS),
