@@ -28,7 +28,7 @@ To get started with Hear Windows, follow these steps:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Afnan-A37/Hear_Windows.git
+   git clone https://github.com/afnanalamm/Hear_Windows.git
    cd Hear_Windows
 2. **Install the required dependencies**
     ```bash
