@@ -36,4 +36,4 @@ To get started with Hear Windows, follow these steps:
 3. Usage
 To run the application, simply execute the following command:
   ```bash
-python main.py
+python Main_Window.py
