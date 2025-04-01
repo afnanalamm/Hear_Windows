@@ -1,0 +1,45 @@
+MainApp
+├── Attributes:
+│   ├── main_window
+│   ├── tab_view
+│   ├── petitions_df
+│   ├── reactions_df
+│   ├── comments_df
+│   └── all_comments_df
+│
+├── Methods:
+│   ├── initialize_dataframes()
+│   ├── save_data()
+│   └── cleanup()
+
+PetitionManager
+├── Attributes:
+│   ├── current_petition_index
+│   └── comments_holder_list
+│
+├── Methods:
+│   ├── create_petition()
+│   ├── load_petition()
+│   └── update_petition_display()
+
+CommentManager
+├── Attributes:
+│   └── comment_reactions
+│
+├── Methods:
+│   ├── post_comment()
+│   ├── create_comment_widget()
+│   └── update_reaction()
+
+UIComponents
+├── Attributes:
+│   ├── home_frame
+│   ├── reactions_frame
+│   ├── comments_section_frame
+│   ├── new_petition_frame
+│   └── notifications_frame
+│
+├── Methods:
+│   ├── setup_trends_tab()
+│   ├── setup_new_tab()
+│   └── setup_responses_tab()
