@@ -22,3 +22,8 @@ and took direction as an argument. It could go either forwards or backwards base
 provided during creation. Hence, she also created the previous post button
 
 ChatGPT also created multiple sub functions that helped create UI/UX elements, improving readability and ease of change.
+
+06.04.25:
+MAIN_WINDOW_ICON updated to: https://www.freepik.com/icon/home_2544087#fromView=family&page=1&position=4&uuid=420e4646-18e8-4ea2-9899-5c0f29bb382b
+LOGIN_WINDOW_ICON updated to: https://www.freepik.com/icon/safety_7109721#fromView=family&page=3&position=2&uuid=55920212-a7fe-4219-9d8f-62c70f5b92dd
+HERE_WINDOW_ICON: https://www.freepik.com/icon/giftbox_1140033#fromView=family&page=1&position=0&uuid=e89e8551-f905-45b8-8842-38a28ddf2022
