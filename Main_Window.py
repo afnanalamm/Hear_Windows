@@ -15,6 +15,7 @@ PETITIONS_FILE = DATA_DIR / "petitions.csv"
 REACTIONS_FILE = DATA_DIR / "reactions.csv"
 COMMENTS_FILE = DATA_DIR / "comments.csv"
 ALL_COMMENTS_FILE = DATA_DIR / "all_comments.csv"
+RESPONSE_INFO_FILE = DATA_DIR / "response_info.csv"
 
 # Global variables initialization
 comment_reactions = {}
@@ -165,11 +166,11 @@ def save_data():
 
 def initialize_dataframes():
     """Initializes dataframes with error handling."""
-    global petitions_df, reactions_df, comments_df, all_comments_df
+    global petitions_df, reactions_df, comments_df, all_comments_df, response_info_df
     try:
         petitions_df = pd.read_csv(PETITIONS_FILE, on_bad_lines='warn') if PETITIONS_FILE.exists() else pd.DataFrame(columns=[
             "petition_id", "user_id", "title", "content", "subdistrict", "city", "country", 
-            "tags", "created_at", "media_path", "num_agree", "num_disagree"
+            "tags", "created_at", "media_path", "num_agree", "num_disagree", "status", ""
         ])
         reactions_df = pd.read_csv(REACTIONS_FILE) if REACTIONS_FILE.exists() else pd.DataFrame(columns=[
             "reaction_id", "user_id", "petition_id", 
@@ -180,6 +181,9 @@ def initialize_dataframes():
         ])
         all_comments_df = pd.read_csv(ALL_COMMENTS_FILE) if ALL_COMMENTS_FILE.exists() else pd.DataFrame(columns=[
             "all_comments_id", "comment"
+        ])
+        response_info_df = pd.read_csv(RESPONSE_INFO_FILE) if RESPONSE_INFO_FILE.exists() else pd.DataFrame(columns=[
+            "response_info_id", "response_text", "responded_at"
         ])
     except Exception as e:
         messagebox.showerror("Error", f"Failed to initialize data: {e}")
@@ -309,7 +313,8 @@ def create_petition():
         'created_at': pd.Timestamp.now(),
         'media_path': filepath,
         'num_agree': 0,
-        'num_disagree': 0
+        'num_disagree': 0,
+        'status': "pending"
     }
     petitions_df = pd.concat([petitions_df, pd.DataFrame([new_petition])], ignore_index=True)
     save_data()

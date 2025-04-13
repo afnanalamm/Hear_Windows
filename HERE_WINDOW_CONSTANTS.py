@@ -23,18 +23,18 @@ WINDOW = ''
 WINDOW_HEIGHT = 600   
 WINDOW_WIDTH = 920 #820 increased from 820 to accomodate the description textbox
 WINDOW_TITLE = 'Here'     
-WINDOW_ICONBITMAP = 'MAIN_WINDOW_ICON.ico'
+WINDOW_ICONBITMAP = 'HERE_WINDOW_ICON.ico'
 
 
 TAB_HEIGHT = 500
 TAB_WIDTH = 400
 GRID_COLUMNCONFIGURE = 1
 GRID_ROWCONFIGURE = 1
-TRENDS = 'Trends📈'
-NEW = "New✨"
-RESPONSES = 'Responses📨'
-SOLUTIONS = "Solutions✅"
-YOU = "You🙂"
+ALL = 'All Petitions'
+PENDING = "Pending Petitions"
+APPROVED = 'Approved Petitions'
+SUSPENDED = "Suspended"
+SETTINGS = "Settings"
 
 '''changed the TAB_TEXT referencing style to using the proper name for each, for easier and clearer referencing'''
 
@@ -161,7 +161,7 @@ SHARE_BUTTON_BACKGROUND = 'WHITE'
 # NEXT_PREVIOUS_BUTTON_FRAME_PADY = 0
 
 # next_previous_button_frame = Frame(
-#     master= tab_view.tab(TRENDS),
+#     master= tab_view.tab(ALL),
 # )
 # next_previous_button_frame.grid(
 #     row = NEXT_PREVIOUS_BUTTON_FRAME_ROW,

@@ -1,1 +1,2 @@
-petition_id, user_id, title, content, subdistrict, city, country, tags, created_at, media_path, num_agree, num_disagree
+petition_id,user_id,title,content,subdistrict,city,country,tags,created_at,media_path,num_agree,num_disagree,status,Unnamed: 13
+1,1,test 090425,testing the description,Tajmahal Road,London,UK,test,2025-04-09 22:10:08.357686,C:/Users/afnan/OneDrive/Pictures/APR IMAGE.jpg,0,0,accepted,

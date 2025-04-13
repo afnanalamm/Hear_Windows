@@ -9,16 +9,17 @@ from tkinter import ttk
 from customtkinter import *
 from MAIN_WINDOW_CONSTANTS import *
 from FUNCTIONS import *
-from NEW_POST_TAB_CONSTANTS import *
 from PIL import ImageTk, Image
+
+
 
 # ======================== CONSTANTS ========================
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 DATA_DIR = Path("data")
-POSTS_FILE = DATA_DIR / "posts.csv"
-REACTIONS_FILE = DATA_DIR / "reactions.csv"
-DEFAULT_IMAGE = "default_image.jpg"  # Create this image or modify path
+POSTS_FILE = DATA_DIR / "test_posts.csv"
+REACTIONS_FILE = DATA_DIR / "test_reactions.csv"
+DEFAULT_IMAGE = "HERE_WINDOW_ICON.jpg"  # Create this image or modify path
 
 # ======================== DATA SETUP ========================
 DATA_DIR.mkdir(exist_ok=True)
@@ -44,6 +45,8 @@ def save_data():
     reactions_df.to_csv(REACTIONS_FILE, index=False)
 
 # ======================== CORE FUNCTIONS ========================
+
+
 def stat_adder(post_id=None, reaction_type='like'):
     global reactions_df
     user_id = 1  # Replace with actual user ID
@@ -153,68 +156,6 @@ comments_section_frame = CTkScrollableFrame(tab_view.tab("Trends"))
 comments_section_frame.pack(fill="both", expand=True)
 
 
-for idx, comment in enumerate(example_comments):
-    comment_frame = CTkFrame(
-        master=comments_section_frame,
-        fg_color=COMMENT_FRAME_BACKGROUND,
-        corner_radius=COMMENT_FRAME_CORNER_RADIUS
-    )
-    comment_frame.pack(fill="x", pady=COMMENT_FRAME_PADY)
-
-    user_label = CTkLabel(
-        master=comment_frame,
-        text=comment["user"],
-        font=COMMENT_USER_FONT,
-        text_color=COMMENT_USER_TEXT_COLOR
-    )
-    user_label.pack(anchor="w", padx=COMMENT_PADX)
-
-    comment_label = CTkLabel(
-        master=comment_frame,
-        text=comment["comment"],
-        font=COMMENT_TEXT_FONT,
-        text_color=COMMENT_TEXT_COLOR,
-        wraplength=COMMENTS_SECTION_FRAME_WIDTH - 40
-    )
-    comment_label.pack(anchor="w", padx=COMMENT_PADX)
-
-    # Reaction buttons frame
-    reaction_frame = CTkFrame(comment_frame, fg_color="transparent")
-    reaction_frame.pack(anchor="e", padx=5, pady=5)
-
-    # Thumbs up button
-    thumbs_up_button_i = 'thumbs_up_button' + str(idx)
-    thumbs_down_button_i = 'thumbs_up_button' + str(idx)
-
-    thumbs_up_button_i = CTkButton(
-        master=reaction_frame,
-        text="👍 0",
-        width=COMMENT_REACTION_BUTTON_WIDTH,
-        height=COMMENT_REACTION_BUTTON_HEIGHT,
-        font=COMMENT_REACTION_BUTTON_FONT,
-        fg_color=COMMENT_REACTION_BUTTON_BG,
-        hover_color=COMMENT_REACTION_BUTTON_HOVER_COLOR,
-        bg_color=COMMENT_REACTION_BUTTON_BG,
-        command=lambda: update_reaction(thumbs_up_button_i)
-    )
-    thumbs_up_button_i.pack(side="left", padx=COMMENT_REACTION_BUTTON_SPACING)
-
-    # Thumbs down button
-    thumbs_down_button_i = CTkButton(
-        master=reaction_frame,
-        text="👎 0",
-        width=COMMENT_REACTION_BUTTON_WIDTH,
-        height=COMMENT_REACTION_BUTTON_HEIGHT,
-        font=COMMENT_REACTION_BUTTON_FONT,
-        fg_color=COMMENT_REACTION_BUTTON_BG,
-        hover_color=COMMENT_REACTION_BUTTON_HOVER_COLOR,
-        bg_color=COMMENT_REACTION_BUTTON_BG,
-        command=lambda: update_reaction(thumbs_down_button_i)
-    )
-    thumbs_down_button_i.pack(side="left", padx=COMMENT_REACTION_BUTTON_SPACING)
-
-
-
 # New Post Tab
 post_creation_frame = CTkFrame(tab_view.tab("New Post"))
 post_creation_frame.pack(fill="both", expand=True, padx=20, pady=20)
@@ -241,5 +182,38 @@ CTkButton(post_creation_frame, text="Create Post", command=create_post).pack(pad
 # Load existing posts
 for _, post in posts_df.iterrows():
     add_post_to_ui(post)
+
+class ResponsePopup():    #Copilot generated this class, but I have modified it to suit my needs
+    def __init__(self):
+        self.window = CTkToplevel()
+        self.window.title("Response")
+        self.window.geometry("600x300")
+        # self.set_default_color_theme("green")  # Removed as it's not a valid method
+        # self.window.protocol("WM_DELETE_WINDOW", self.close)
+
+        # Create a label and button in the popup window
+        self.label = CTkLabel(self.window, text="Please enter your response as to why\nyou've accepted/rejected the petition")
+        self.label.pack(pady=20)
+
+        self.reply_textbox = CTkTextbox(master= self.window, height = 300, width = 200, corner_radius = 10,
+                                        fg_color= "#2d54d1")
+        self.reply_textbox.pack(pady=20)
+
+        # Create a reply button
+        self.reply_button = CTkButton(self.window, text="Reply", command=self.close)
+        self.reply_button.pack(pady=0)
+
+        # Create a close button
+        self.close_button = CTkButton(self.window, text="Close", command=self.close)
+        self.close_button.pack(pady=0)
+
+    def reply(self):
+        pass
+
+    def close(self):
+        self.window.destroy()
+
+my_button = CTkButton(tab_view.tab('Trends'), text="Send Response", command=ResponsePopup)
+my_button.pack(pady=10)
 
 home_window.mainloop()
