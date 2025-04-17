@@ -7,21 +7,50 @@ import pandas as pd
 from pathlib import Path
 # import os, sys, random, time, datetime, subprocess
 from LOGIN_WINDOW_CONSTANTS import *
-from MAIN_WINDOW_CONSTANTS import *
+from HERE_WINDOW_CONSTANTS import *
 
 # Initialize data structures at the start
 DATA_DIR = Path("data")
 PETITIONS_FILE = DATA_DIR / "petitions.csv"
 REACTIONS_FILE = DATA_DIR / "reactions.csv"
-COMMENTS_FILE = DATA_DIR / "comments.csv"
+COMMENTS_FILE = DATA_DIR / "comments.csv"#
 ALL_COMMENTS_FILE = DATA_DIR / "all_comments.csv"
+RESPONSE_INFO_FILE = DATA_DIR / "response_info.csv"
 
-# Global variables initialization
-comment_reactions = {}
-notifications = []
-current_petition_index = 0  # Ensure this is defined
-comments_holder_list = []  # Initialize comments_holder_list
+# Initialize the current petition index
+global current_petition_index
+current_petition_index = 0
 
+'''============================= CLASSES ====================================='''
+class ResponsePopup():    #Copilot generated this class, but I have modified it to suit my needs
+    def __init__(self, title, response = str):
+        self.window = CTkToplevel()
+        self.window.title("Response")
+        self.window.geometry("600x300")
+        # self.set_default_color_theme("green")  # Removed as it's not a valid method
+        # self.window.protocol("WM_DELETE_WINDOW", self.close)
+
+        # Create a label and button in the popup window
+        self.label = CTkLabel(self.window, text= f"Please elaborate why you {response} the petition: \n {title}")
+        self.label.pack(pady=20)
+
+        self.reply_textbox = CTkTextbox(master= self.window, height = 300, width = 200, corner_radius = 10,
+                                        fg_color= "#010110")
+        self.reply_textbox.pack(pady=20)
+
+        # Create a reply button
+        self.reply_button = CTkButton(self.window, text="Reply", command=messagebox.askyesno("Reply", "Are you sure you want to send this reply?"))
+        self.reply_button.pack(pady=0)
+
+        # Create a close button
+        self.close_button = CTkButton(self.window, text="Close", command=self.close)
+        self.close_button.pack(pady=0)
+
+    def reply(self):
+        pass
+
+    def close(self):
+        self.window.destroy()
 
 # Constants
 DEFAULT_USER = "You"  # Default username for new comments
@@ -163,13 +192,14 @@ def save_data():
     reactions_df.to_csv(REACTIONS_FILE, index=False)
 
 
+
 def initialize_dataframes():
     """Initializes dataframes with error handling."""
-    global petitions_df, reactions_df, comments_df, all_comments_df
+    global petitions_df, reactions_df, comments_df, all_comments_df, response_info_df
     try:
         petitions_df = pd.read_csv(PETITIONS_FILE, on_bad_lines='warn') if PETITIONS_FILE.exists() else pd.DataFrame(columns=[
             "petition_id", "user_id", "title", "content", "subdistrict", "city", "country", 
-            "tags", "created_at", "media_path", "num_agree", "num_disagree"
+            "tags", "created_at", "media_path", "num_agree", "num_disagree", "status"
         ])
         reactions_df = pd.read_csv(REACTIONS_FILE) if REACTIONS_FILE.exists() else pd.DataFrame(columns=[
             "reaction_id", "user_id", "petition_id", 
@@ -181,22 +211,45 @@ def initialize_dataframes():
         all_comments_df = pd.read_csv(ALL_COMMENTS_FILE) if ALL_COMMENTS_FILE.exists() else pd.DataFrame(columns=[
             "all_comments_id", "comment"
         ])
+        response_info_df = pd.read_csv(RESPONSE_INFO_FILE) if RESPONSE_INFO_FILE.exists() else pd.DataFrame(columns=[
+            "response_info_id", "response_text", "responded_at"
+        ])
     except Exception as e:
         messagebox.showerror("Error", f"Failed to initialize data: {e}")
         raise
+def save_data():
+    try:
+        petitions_df.to_csv(PETITIONS_FILE, index=False)
+        reactions_df.to_csv(REACTIONS_FILE, index=False)
+        comments_df.to_csv(COMMENTS_FILE, index=False)
+        all_comments_df.to_csv(ALL_COMMENTS_FILE, index=False)
+        response_info_df.to_csv(RESPONSE_INFO_FILE, index=False)
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to save data: {e}")
 
+def respond_petition(response = str):
+    """Handles the command from the accept & reject petitions buttons on the council side"""
+    global current_petition_index
+    try:
+        #Get data about the current petition
+        petition_title = petitions_df.iloc[current_petition_index]["title"]
+        petition_id = petitions_df.iloc[current_petition_index]["petition_id"]
+    
+        match response:
+            case "Accept":
+                ResponsePopup(response= "accepted", title= petition_title)
+                petitions_df.at[current_petition_index, "status"] = "accepted"
+            case "Reject":
+                ResponsePopup(response= "rejected", title= petition_title)
+                petitions_df.at[current_petition_index, "status"] = "rejected"
+        # save_data()
+        
 
-initialize_dataframes()
-
-# Load like/dislike counts
-# try:
-#     with open("LikeDislikeStats.txt", "r") as stats_file:
-#         agree_count = stats_file.readline().strip() or "0"
-#         disagree_count = stats_file.readline().strip() or "0"
-# except FileNotFoundError:
-#     agree_count, disagree_count = "0", "0"
-#     with open("LikeDislikeStats.txt", "w") as stats_file:
-#         stats_file.write("0\n0")
+    except Exception as e:
+        messagebox.showerror("Error!", f"Failed to respond to petition: /n {e}")
+        raise
+    finally:
+        save_data()
 
 
 
@@ -309,7 +362,8 @@ def create_petition():
         'created_at': pd.Timestamp.now(),
         'media_path': filepath,
         'num_agree': 0,
-        'num_disagree': 0
+        'num_disagree': 0,
+        'status': "pending"
     }
     petitions_df = pd.concat([petitions_df, pd.DataFrame([new_petition])], ignore_index=True)
     save_data()
@@ -327,10 +381,11 @@ def cleanup():
     finally:
         main_window.destroy()
 
+
 '''======================== MAIN WINDOW SETUP ========================'''
 
 # Window setup
-main_window = Tk()#
+main_window = Tk()
 main_window.configure(padx=5, pady=5)
 main_window.geometry(f"{WINDOW_WIDTH+50}x{WINDOW_HEIGHT}+0+0")
 main_window.minsize(width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
@@ -346,19 +401,19 @@ tab_view.grid_rowconfigure(0, weight=1)
 main_window.grid_columnconfigure(0, weight=1)
 
 # create tabs
-tab_view.add(TRENDS)
-tab_view.add(NEW)
-tab_view.add(RESPONSES)
-tab_view.add(SOLUTIONS)
-tab_view.add(YOU)
+tab_view.add(ALL)
+tab_view.add(PENDING)
+tab_view.add(APPROVED)
+tab_view.add(SUSPENDED)
+tab_view.add(SETTINGS)
 
-tab_view.tab(TRENDS).configure(height=TAB_HEIGHT, width=TAB_WIDTH)  # just resizing all tabs, so that they are all the same size
-tab_view.tab(NEW).configure(height=TAB_HEIGHT, width=TAB_WIDTH)  # needed to resize this one initially, as the image-display frame was being cut off
-tab_view.tab(RESPONSES).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
-tab_view.tab(SOLUTIONS).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
-tab_view.tab(YOU).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
+tab_view.tab(ALL).configure(height=TAB_HEIGHT, width=TAB_WIDTH)  # just resizing all tabs, so that they are all the same size
+tab_view.tab(PENDING).configure(height=TAB_HEIGHT, width=TAB_WIDTH)  # needed to resize this one initially, as the image-display frame was being cut off
+tab_view.tab(APPROVED).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
+tab_view.tab(SUSPENDED).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
+tab_view.tab(SETTINGS).configure(height=TAB_HEIGHT, width=TAB_WIDTH)
 
-home_frame = Frame(master=tab_view.tab(TRENDS), background=FRAME_BACKGROUND, width=FRAME_WIDTH, height=FRAME_HEIGHT)
+home_frame = Frame(master=tab_view.tab(ALL), background=FRAME_BACKGROUND, width=FRAME_WIDTH, height=FRAME_HEIGHT)
 home_frame.grid_configure(row=0, column=0, sticky=NSEW)
 
 home_image = PilImage.open('MAIN_WINDOW_ICON.jpg').resize(RESIZED_IMAGE_TUPLE, PilImage.LANCZOS)
@@ -412,7 +467,7 @@ stat_type = StringVar()  # Need this to check the value of the radiobuttons-AG�
 # Stats labels
 agree_stat = CTkLabel(
     master=reactions_frame,  # label for agree stat -AG🟨
-    text=("agree:")#agree_count
+    text=("Agreed:")#agree_count
 )
 agree_stat.grid(
     row=0,
@@ -421,32 +476,32 @@ agree_stat.grid(
 
 disagree_stat = CTkLabel(
     master=reactions_frame,  # label for disagree stat -AG🟨
-    text=("disagree:")#, disagree_count)
+    text=("Disagreed:")#, disagree_count)
 )
 disagree_stat.grid(
     row=1,
     column=0
 )
 
-agree_button = Radiobutton(
+accept_button = Radiobutton(
     master=reactions_frame,
     foreground=AGREE_BUTTON_BACKGROUND,
     activebackground=AGREE_BUTTON_BACKGROUND,
     width=7,  # REACTION_BUTTON_WIDTH
-    text='AGREE', variable=stat_type, value=0,  # Added variable=stat_type -AG🟨
-    command= lambda: update_stat('agree')#, index = current_petition_index)  # just added the command after to the agree/disagree buttons, which AG🟨 forgot --AA🟥
+    text='Accept Petition', variable=stat_type, value=0,  # Added variable=stat_type -AG🟨
+    command= lambda: respond_petition("Accept")
 )
-agree_button.grid(row=2, column=0)
+accept_button.grid(row=2, column=0)
 
-disagree_button = Radiobutton(
+reject_button = Radiobutton(
     master=reactions_frame,
     foreground=DISAGREE_BUTTON_BACKGROUND,
     activebackground=DISAGREE_BUTTON_BACKGROUND,
     width= REACTION_BUTTON_WIDTH,
     text='DISAGREE',variable=stat_type, value=1, #Will not work without variable=stat_type -AG🟨
-    command= lambda: update_stat('disagree')#, index = current_petition_index)
+    command= lambda: respond_petition("Reject")
 )
-disagree_button.grid(row=3, column=0)  # row=3 AG🟨
+reject_button.grid(row=3, column=0)  # row=3 AG🟨
 
 
 # Additional buttons
@@ -455,7 +510,7 @@ info_button = Button(
     activebackground=INFO_BUTTON_BACKGROUND,
     width=REACTION_BUTTON_WIDTH,
     text=INFO_BUTTON_TEXT,
-    command= lambda: load_petition_description(current_petition_index)
+    command= lambda: load_petition_description(current_petition_index) # type: ignore
 )
 info_button.grid(row=4, column=0)  # row 4 -AG🟨
 
@@ -548,7 +603,7 @@ post_comment_button = Button(
     bg=POST_COMMENT_BUTTON_BG,
     fg=POST_COMMENT_BUTTON_FG,
     font=POST_COMMENT_BUTTON_FONT,
-    command=post_comment
+    # command=post_comment # type: ignore
 )
 post_comment_button.pack(
     padx=POST_COMMENT_BUTTON_PADX, 
@@ -556,9 +611,9 @@ post_comment_button.pack(
 )
 
 next_petition_button = Button(
-    master = tab_view.tab(TRENDS),
+    master = tab_view.tab(ALL),
     text= NEXT_PETITION_BUTTON_TEXT,
-    command= lambda: load_petition('next')
+    command= lambda: load_petition('next') # type: ignore
 )
 next_petition_button.grid(
     row = NEXT_PETITION_BUTTON_ROW,
@@ -569,9 +624,9 @@ next_petition_button.grid(
 )
 
 previous_petition_button = Button(
-    master = tab_view.tab(TRENDS),
+    master = tab_view.tab(ALL),
     text= PREVIOUS_PETITION_BUTTON_TEXT,
-    command= lambda: load_petition('previous')
+    command= lambda: load_petition('previous') # type: ignore
 )
 previous_petition_button.grid(
     row = PREVIOUS_PETITION_BUTTON_ROW,
@@ -581,9 +636,9 @@ previous_petition_button.grid(
     padx= PREVIOUS_PETITION_BUTTON_PADX
 )
 
-'''CODE FOR NEW POST TAB'''
+'''CODE FOR PENDING POST TAB'''
 new_petition_frame = Frame(
-    master=tab_view.tab(NEW), 
+    master=tab_view.tab(PENDING), 
     background='#aaaaaa',
     width=NEW_PETITION_FRAME_WIDTH,
     height=NEW_PETITION_FRAME_HEIGHT,
@@ -783,7 +838,7 @@ petition_button = CTkButton(
     font=PETITION_BUTTON_FONT,  # Font and size
     state=PETITION_BUTTON_STATE,  # Button state
     hover=PETITION_BUTTON_HOVER,  # Enable hover effect
-    command= create_petition
+    # command= create_petition # type: ignore
 )
 # Place the button in the grid
 petition_button.grid(
@@ -792,16 +847,19 @@ petition_button.grid(
     sticky=PETITION_BUTTON_STICKY
 )
 
-# ======================== RESPONSES TAB (NOTIFICATIONS) ========================
+# ======================== APPROVED TAB (NOTIFICATIONS) ========================
 # Notifications data list
 notifications = []  # List to store notification messages
 
 notifications_frame = CTkScrollableFrame(
-    master=tab_view.tab(RESPONSES),
+    master=tab_view.tab(APPROVED),
     width=FRAME_WIDTH - 20,
     height=FRAME_HEIGHT - 50,
     fg_color="#f0f0f0"
 )
 notifications_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+# Initialize dataframes before starting the main loop
+initialize_dataframes()
 
 main_window.mainloop()
