@@ -9,7 +9,6 @@ from tkinter import ttk
 from customtkinter import *
 from MAIN_WINDOW_CONSTANTS import *
 from FUNCTIONS import *
-from NEW_POST_TAB_CONSTANTS import *
 from PIL import ImageTk, Image
 
 # ======================== CONSTANTS ========================
@@ -153,6 +152,13 @@ comments_section_frame = CTkScrollableFrame(tab_view.tab("Trends"))
 comments_section_frame.pack(fill="both", expand=True)
 
 
+# Example comments data
+example_comments = [
+    {"user": "Alice", "comment": "This is a great post!"},
+    {"user": "Bob", "comment": "I completely agree with this."},
+    {"user": "Charlie", "comment": "Interesting perspective, thanks for sharing."}
+]
+
 for idx, comment in enumerate(example_comments):
     comment_frame = CTkFrame(
         master=comments_section_frame,
@@ -183,9 +189,6 @@ for idx, comment in enumerate(example_comments):
     reaction_frame.pack(anchor="e", padx=5, pady=5)
 
     # Thumbs up button
-    thumbs_up_button_i = 'thumbs_up_button' + str(idx)
-    thumbs_down_button_i = 'thumbs_up_button' + str(idx)
-
     thumbs_up_button_i = CTkButton(
         master=reaction_frame,
         text="👍 0",
