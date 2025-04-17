@@ -26,30 +26,36 @@ class ResponsePopup():    #Copilot generated this class, but I have modified it 
     def __init__(self, title, response = str):
         self.window = CTkToplevel()
         self.window.title("Response")
-        self.window.geometry("600x300")
-        # self.set_default_color_theme("green")  # Removed as it's not a valid method
-        # self.window.protocol("WM_DELETE_WINDOW", self.close)
+        self.window.geometry(f"600x350")
+        self.window.attributes('-topmost', True)  # Ensure the popup is on top of other windows
+        # self.window.focus_force()  # Focus on the popup window
 
         # Create a label and button in the popup window
-        self.label = CTkLabel(self.window, text= f"Please elaborate why you {response} the petition: \n {title}")
-        self.label.pack(pady=20)
+        self.reply_notice_label = CTkLabel(self.window, text= f"Please elaborate why you {response} the petition: \n {title}")
+        self.reply_notice_label.pack(pady=20)
+        self.reply_notice_label.configure(bg_color = 'black', fg_color = '#010101', text_color = 'white', corner_radius = 10)
 
-        self.reply_textbox = CTkTextbox(master= self.window, height = 300, width = 200, corner_radius = 10,
+        self.reply_textbox = CTkTextbox(master= self.window, height = 200, width = 600, corner_radius = 10,
                                         fg_color= "#010110")
-        self.reply_textbox.pack(pady=20)
+        self.reply_textbox.pack(pady=4)
 
         # Create a reply button
-        self.reply_button = CTkButton(self.window, text="Reply", command=messagebox.askyesno("Reply", "Are you sure you want to send this reply?"))
-        self.reply_button.pack(pady=0)
+        self.reply_button = CTkButton(master= self.window, text="Reply", command=lambda: self.reply())
+        self.reply_button.pack(padx=2, pady=2)
 
         # Create a close button
-        self.close_button = CTkButton(self.window, text="Close", command=self.close)
-        self.close_button.pack(pady=0)
+        self.cancel_button = CTkButton(master= self.window, text="Cancel", command=self.cancel)
+        self.cancel_button.pack(padx=2, pady=2)
 
     def reply(self):
-        pass
+        choice = messagebox.askyesno("Reply", "Are you sure you want to send this reply?")
+        if choice == True:
+            print("Reply sent:", self.reply_textbox.get("1.0", "end-1c"))
+            self.reply_textbox.delete("1.0", "end")
+        else:
+            print("Reply cancelled")
 
-    def close(self):
+    def cancel(self):
         self.window.destroy()
 
 # Constants
@@ -121,29 +127,6 @@ def create_comment_widget(comment, parent, index=None):
     create_reaction_buttons(comment_frame, index)
 
 
-def post_comment():
-    """Handles posting a new comment."""
-    global comments_df, all_comments_df
-
-    comment_text = comment_textbox.get("1.0", "end-1c").strip()
-    if comment_text:
-        new_comment_id = {
-            "petition_id": current_petition_index,
-            "user_id": 1,
-            "all_comments_id": len(all_comments_df) + 1,
-        }
-
-        comments_df = pd.concat([comments_df, pd.DataFrame([new_comment_id])], ignore_index=True)
-        all_comments_df = pd.concat(
-            [all_comments_df, pd.DataFrame([{"all_comments_id": len(all_comments_df) + 1, "comment": comment_text}])],
-            ignore_index=True,
-        )
-
-        comments_df.to_csv(COMMENTS_FILE, index=False)
-        all_comments_df.to_csv(ALL_COMMENTS_FILE, index=False)
-
-        create_comment_widget({"comment": comment_text, "user": DEFAULT_USER}, comments_section_frame)
-        comment_textbox.delete("1.0", "end")
 
 
 def update_petition_display(petition_index):
@@ -467,52 +450,84 @@ stat_type = StringVar()  # Need this to check the value of the radiobuttons-AG�
 # Stats labels
 agree_stat = CTkLabel(
     master=reactions_frame,  # label for agree stat -AG🟨
-    text=("Agreed:")#agree_count
+    text=AGREE_STAT_TEXT,
+    bg_color=AGREE_STAT_BG_COLOR,
+    corner_radius=AGREE_STAT_CORNER_RADIUS,
+    width=REACTION_BUTTON_WIDTH,
 )
 agree_stat.grid(
-    row=0,
-    column=0
+    row=AGREE_STAT_ROW,
+    column=AGREE_STAT_COLUMN,
+    sticky=AGREE_STAT_STICKY,
+    padx=AGREE_STAT_PADX,
+    pady=AGREE_STAT_PADY
 )
 
 disagree_stat = CTkLabel(
     master=reactions_frame,  # label for disagree stat -AG🟨
-    text=("Disagreed:")#, disagree_count)
+    text=DISAGREE_STAT_TEXT,
+    bg_color=DISAGREE_STAT_BG_COLOR,
+    corner_radius=DISAGREE_STAT_CORNER_RADIUS,
+    width=REACTION_BUTTON_WIDTH,
 )
 disagree_stat.grid(
-    row=1,
-    column=0
+    row=DISAGREE_STAT_ROW,
+    column=DISAGREE_STAT_COLUMN,
+    sticky=DISAGREE_STAT_STICKY,
+    padx=DISAGREE_STAT_PADX,
+    pady=DISAGREE_STAT_PADY
 )
 
 accept_button = Radiobutton(
     master=reactions_frame,
-    foreground=AGREE_BUTTON_BACKGROUND,
-    activebackground=AGREE_BUTTON_BACKGROUND,
-    width=7,  # REACTION_BUTTON_WIDTH
-    text='Accept Petition', variable=stat_type, value=0,  # Added variable=stat_type -AG🟨
-    command= lambda: respond_petition("Accept")
+    foreground=ACCEPT_BUTTON_BACKGROUND,
+    activebackground=ACCEPT_BUTTON_BACKGROUND,
+    width=REACTION_BUTTON_WIDTH,
+    text=ACCEPT_BUTTON_TEXT,
+    variable=stat_type,
+    value=0,  # Added variable=stat_type -AG🟨
+    command=lambda: respond_petition("Accept")
 )
-accept_button.grid(row=2, column=0)
+accept_button.grid(
+    row=ACCEPT_BUTTON_ROW,
+    column=ACCEPT_BUTTON_COLUMN,
+    sticky=ACCEPT_BUTTON_STICKY,
+    padx=ACCEPT_BUTTON_PADX,
+    pady=ACCEPT_BUTTON_PADY
+)
 
 reject_button = Radiobutton(
     master=reactions_frame,
-    foreground=DISAGREE_BUTTON_BACKGROUND,
-    activebackground=DISAGREE_BUTTON_BACKGROUND,
-    width= REACTION_BUTTON_WIDTH,
-    text='DISAGREE',variable=stat_type, value=1, #Will not work without variable=stat_type -AG🟨
-    command= lambda: respond_petition("Reject")
+    foreground=REJECT_BUTTON_BACKGROUND,
+    activebackground=REJECT_BUTTON_BACKGROUND,
+    width=REACTION_BUTTON_WIDTH,
+    text=REJECT_BUTTON_TEXT,
+    variable=stat_type,
+    value=1,  # Will not work without variable=stat_type -AG🟨
+    command=lambda: respond_petition("Reject")
 )
-reject_button.grid(row=3, column=0)  # row=3 AG🟨
+reject_button.grid(
+    row=REJECT_BUTTON_ROW,
+    column=REJECT_BUTTON_COLUMN,
+    sticky=REJECT_BUTTON_STICKY,
+    padx=REJECT_BUTTON_PADX,
+    pady=REJECT_BUTTON_PADY
+)
 
-
-# Additional buttons
 info_button = Button(
     master=reactions_frame,
     activebackground=INFO_BUTTON_BACKGROUND,
     width=REACTION_BUTTON_WIDTH,
     text=INFO_BUTTON_TEXT,
-    command= lambda: load_petition_description(current_petition_index) # type: ignore
+    command=lambda: load_petition_description(current_petition_index)  # type: ignore
 )
-info_button.grid(row=4, column=0)  # row 4 -AG🟨
+info_button.grid(
+    row=INFO_BUTTON_ROW,
+    column=INFO_BUTTON_COLUMN,
+    sticky=INFO_BUTTON_STICKY,
+    padx=INFO_BUTTON_PADX,
+    pady=INFO_BUTTON_PADY
+)
 
 question_button = Button(
     master=reactions_frame,
@@ -521,7 +536,13 @@ question_button = Button(
     width=REACTION_BUTTON_WIDTH,
     text=QUESTION_BUTTON_TEXT
 )
-question_button.grid(row=5, column=0)  # row 5 -AG🟨
+question_button.grid(
+    row=QUESTION_BUTTON_ROW,
+    column=QUESTION_BUTTON_COLUMN,
+    sticky=QUESTION_BUTTON_STICKY,
+    padx=QUESTION_BUTTON_PADX,
+    pady=QUESTION_BUTTON_PADY
+)
 
 share_button = Button(
     master=reactions_frame,
@@ -530,8 +551,13 @@ share_button = Button(
     width=REACTION_BUTTON_WIDTH,
     text=SHARE_BUTTON_TEXT,
 )
-share_button.grid(row=6, column=0)
-
+share_button.grid(
+    row=SHARE_BUTTON_ROW,
+    column=SHARE_BUTTON_COLUMN,
+    sticky=SHARE_BUTTON_STICKY,
+    padx=SHARE_BUTTON_PADX,
+    pady=SHARE_BUTTON_PADY
+)
 # Image Info Label
 image_info_label = Label(
     master=home_frame,
@@ -565,51 +591,6 @@ comments_section_frame.grid(
     pady=COMMENTS_SECTION_FRAME_PADY
 )
 
-# After comments_section_frame setup and before the next_petition_button
-# Create comment entry frame
-comment_entry_frame = Frame(
-    master=home_frame,
-    width=COMMENT_ENTRY_FRAME_WIDTH,
-    height=COMMENT_ENTRY_FRAME_HEIGHT,
-    bg=COMMENT_ENTRY_FRAME_BACKGROUND
-)
-comment_entry_frame.grid(
-    row=COMMENT_ENTRY_FRAME_ROW,
-    column=COMMENT_ENTRY_FRAME_COLUMN,
-    sticky=COMMENT_ENTRY_FRAME_STICKY,
-    padx=COMMENT_ENTRY_FRAME_PADX,
-    pady=COMMENT_ENTRY_FRAME_PADY
-)
-
-# Create comment textbox
-comment_textbox = Text(
-    master=comment_entry_frame,
-    height=COMMENT_TEXTBOX_HEIGHT,
-    width=COMMENT_TEXTBOX_WIDTH,
-    font=COMMENT_TEXTBOX_FONT,
-    wrap=COMMENT_TEXTBOX_WRAP,
-)
-comment_textbox.pack(
-    padx=COMMENT_TEXTBOX_PADX,
-    pady=COMMENT_TEXTBOX_PADY
-)
-
-# Create petition button
-post_comment_button = Button(
-    master=comment_entry_frame,
-    text=POST_COMMENT_BUTTON_TEXT,
-    width=POST_COMMENT_BUTTON_WIDTH,
-    height=POST_COMMENT_BUTTON_HEIGHT,
-    bg=POST_COMMENT_BUTTON_BG,
-    fg=POST_COMMENT_BUTTON_FG,
-    font=POST_COMMENT_BUTTON_FONT,
-    # command=post_comment # type: ignore
-)
-post_comment_button.pack(
-    padx=POST_COMMENT_BUTTON_PADX, 
-    pady=POST_COMMENT_BUTTON_PADY
-)
-
 next_petition_button = Button(
     master = tab_view.tab(ALL),
     text= NEXT_PETITION_BUTTON_TEXT,
@@ -637,216 +618,6 @@ previous_petition_button.grid(
 )
 
 '''CODE FOR PENDING POST TAB'''
-new_petition_frame = Frame(
-    master=tab_view.tab(PENDING), 
-    background='#aaaaaa',
-    width=NEW_PETITION_FRAME_WIDTH,
-    height=NEW_PETITION_FRAME_HEIGHT,
-    border=NEW_PETITION_FRAME_BORDER,
-    cursor=NEW_PETITION_FRAME_CURSOR,
-    padx=NEW_PETITION_FRAME_PADX,
-    pady=NEW_PETITION_FRAME_PADY
-)
-new_petition_frame.place(
-    relx=NEW_PETITION_FRAME_RELX,
-    rely=NEW_PETITION_FRAME_RELY
-    
-)
-
-picture_preview_canvas = Canvas(
-    master=new_petition_frame,
-    width=PICTURE_PREVIEW_WIDTH,
-    height=PICTURE_PREVIEW_HEIGHT
-)
-picture_preview_canvas.create_text(
-    PICTURE_PREVIEW_WIDTH / 2,
-    PICTURE_PREVIEW_HEIGHT / 2,
-    text=PICTURE_PREVIEW_TEXT
-)
-picture_preview_canvas.grid(
-    row=PICTURE_PREVIEW_ROW,
-    column=PICTURE_PREVIEW_COLUMN,
-    rowspan=PICTURE_PREVIEW_ROWSPAN,
-    columnspan=PICTURE_PREVIEW_COLUMNSPAN,
-    padx=PICTURE_PREVIEW_PADX,
-    pady=PICTURE_PREVIEW_PADY,
-)
-
-petition_description_frame = Frame(
-    master=new_petition_frame, 
-    background=POST_DESCRIPTION_FRAME_BACKGROUND,
-    width=POST_DESCRIPTION_FRAME_WIDTH,
-    height=POST_DESCRIPTION_FRAME_HEIGHT
-)
-petition_description_frame.grid(
-    row=POST_DESCRIPTION_FRAME_ROW, 
-    column=POST_DESCRIPTION_FRAME_COLUMN,
-    sticky=POST_DESCRIPTION_FRAME_STICKY
-)
-
-location_dropdown = CTkComboBox(
-    master=petition_description_frame, 
-    values=LOCATION_DROPDOWN_VALUES, 
-    width=5
-)
-location_dropdown.grid(
-    row=LOCATION_DROPDOWN_ROW, 
-    column=LOCATION_DROPDOWN_COLUMN, 
-    sticky=LOCATION_DROPDOWN_STICKY
-)
-
-upload_cancel_button_frame = Frame(
-    master= petition_description_frame,
-    # width= UPLOAD_CANCEL_BUTTON_FRAME_WIDTH
-
-)
-upload_cancel_button_frame.grid(
-    row=UPLOAD_CANCEL_BUTTON_FRAME_ROW,
-    column=UPLOAD_CANCEL_BUTTON_FRAME_COLUMN,
-    # columnspan=UPLOAD_CANCEL_BUTTON_FRAME_COLUMNSPAN,
-    sticky=UPLOAD_CANCEL_BUTTON_FRAME_STICKY
-)
-
-upload_button = Button(
-    master= upload_cancel_button_frame,
-    text=UPLOAD_BUTTON_TEXT,
-    width=UPLOAD_BUTTON_WIDHT,
-    height=UPLOAD_BUTTON_HEIGHT,
-    background=UPLOAD_BUTTON_BACKGROUND,
-    fg=UPLOAD_BUTTON_FOREGROUND,
-    command=lambda: open_file(picture_preview_canvas) # type: ignore
-)
-upload_button.grid(
-    # relx=UPLOAD_BUTTON_RELX,
-    # rely=UPLOAD_BUTTON_RELY
-    row= UPLOAD_BUTTON_ROW,
-    column=UPLOAD_BUTTON_COLUMN,
-    sticky= UPLOAD_BUTTON_STICKY
-)
-
-cancel_upload_button = Button(
-    master=upload_cancel_button_frame,  # Master frame (tab in this case)
-    text=CANCEL_UPLOAD_BUTTON_TEXT,  # Button text
-    width=CANCEL_UPLOAD_BUTTON_WIDTH,  # Button width
-    height=CANCEL_UPLOAD_BUTTON_HEIGHT,  # Button height
-    background=CANCEL_UPLOAD_BUTTON_BACKGROUND,  # Background color
-    fg=CANCEL_UPLOAD_BUTTON_FOREGROUND,  # Text color
-    command=lambda: picture_preview_canvas.delete("all")  # Command to execute
-)
-# Place the button in the window
-cancel_upload_button.grid(
-    # rely and relx not being used, as I switched to grid()
-    # relx=CANCEL_UPLOAD_BUTTON_RELX,  # Relative x position
-    # rely=CANCEL_UPLOAD_BUTTON_RELY  # Relative y position
-    row=CANCEL_UPLOAD_BUTTON_ROW,
-    column=CANCEL_UPLOAD_BUTTON_COLUMN,
-    sticky=CANCEL_UPLOAD_BUTTON_STICKY
-)
-
-petition_title_label = Label(
-    master=petition_description_frame,
-    relief=POST_TITLE_ENTRY_RELIEF,
-    borderwidth=POST_TITLE_ENTRY_BORDERWIDTH,  # has more functionality that CtkEntry
-    width=POST_TITLE_ENTRY_WIDTH,
-    text=POST_TITLE_LABEL_TEXT
-)
-petition_title_label.grid(
-    row=POST_TITLE_ENTRY_ROW - 1,
-    column=POST_TITLE_ENTRY_COLUMN,
-    sticky=NSEW,
-    padx=POST_TITLE_ENTRY_PADX,
-    pady=POST_TITLE_ENTRY_PADY
-)
-
-petition_title_entry = Entry(
-    master=petition_description_frame,
-    relief=POST_TITLE_ENTRY_RELIEF,
-    borderwidth=POST_TITLE_ENTRY_BORDERWIDTH,  # has more functionality that CtkEntry
-    width=POST_TITLE_ENTRY_WIDTH
-)
-petition_title_entry.grid(
-    row=POST_TITLE_ENTRY_ROW,
-    column=POST_TITLE_ENTRY_COLUMN,
-    sticky=NSEW,
-    padx=POST_TITLE_ENTRY_PADX,
-    pady=POST_TITLE_ENTRY_PADY
-)
-
-description_label = Label(
-    master=petition_description_frame,
-    relief=POST_TITLE_ENTRY_RELIEF,
-    borderwidth=DESCRIPTION_LABEL_BORDERWIDTH,
-    width=DESCRIPTION_LABEL_WIDTH,
-    text=DESCRIPTION_LABEL_TEXT
-)
-description_label.grid(
-    row=DESCRIPTION_LABEL_ROW,
-    column=DESCRIPTION_LABEL_COLUMN,
-    sticky=DESCRIPTION_LABEL_STICKY,
-    padx=DESCRIPTION_LABEL_PADX,
-    pady=DESCRIPTION_LABEL_PADY
-)
-
-description_textbox = CTkTextbox(
-    master=petition_description_frame,
-    width=DESCRIPTION_TEXTBOX_WIDTH,
-    corner_radius=DESCRIPTION_TEXTBOX_CORNER_RADIUS,
-    wrap=DESCRIPTION_TEXTBOX_WRAP,
-    text_color=DESCRIPTION_TEXTBOX_TEXT_COLOUR,
-    bg_color=DESCRIPTION_TEXTBOX_BACKGROUND,
-    fg_color=DESCRIPTION_TEXTBOX_FG_COLOUR,
-    border_color=DESCRIPTION_TEXTBOX_BORDER_COLOUR,
-    border_width=DESCRIPTION_TEXTBOX_BORDER_WIDTH
-)
-description_textbox.grid(
-    row=DESCRIPTION_TEXTBOX_ROW,
-    column=DESCRIPTION_TEXTBOX_COLUMN,
-    sticky=DESCRIPTION_TEXTBOX_STICKY
-)
-
-# Create the urgent checkbox
-urgent_checkbox = CTkCheckBox(
-    master=petition_description_frame,
-    text=URGENT_CHECKBOX_TEXT,
-    text_color=URGENT_CHECKBOX_TEXT_COLOR,
-    fg_color=URGENT_CHECKBOX_FG_COLOR,
-    border_color=URGENT_CHECKBOX_BORDER_COLOR,
-    border_width=URGENT_CHECKBOX_BORDER_WIDTH,
-    width=URGENT_CHECKBOX_WIDTH,
-    height=URGENT_CHECKBOX_HEIGHT,
-    corner_radius=URGENT_CHECKBOX_CORNER_RADIUS,
-    hover_color=URGENT_CHECKBOX_HOVER_COLOR,
-    bg_color="transparent"  # Changed from URGENT_CHECKBOX_BACKGROUND_COLOR
-)
-urgent_checkbox.grid(
-    row=URGENT_CHECKBOX_ROW,
-    column=URGENT_CHECKBOX_COLUMN,
-    sticky=URGENT_CHECKBOX_STICKY
-)
-
-petition_button = CTkButton(
-    master=petition_description_frame,  # Master frame
-    text=PETITION_BUTTON_TEXT,  # Button text
-    width=PETITION_BUTTON_WIDTH,  # Button width
-    height=PETITION_BUTTON_HEIGHT,  # Button height
-    corner_radius=PETITION_BUTTON_CORNER_RADIUS,  # Corner radius
-    border_width=PETITION_BUTTON_BORDER_WIDTH,  # Border width
-    fg_color=PETITION_BUTTON_FG_COLOR,  # Foreground color
-    hover_color=PETITION_BUTTON_HOVER_COLOR,  # Hover color
-    border_color=PETITION_BUTTON_BORDER_COLOR,  # Border color
-    text_color=PETITION_BUTTON_TEXT_COLOR,  # Text color
-    font=PETITION_BUTTON_FONT,  # Font and size
-    state=PETITION_BUTTON_STATE,  # Button state
-    hover=PETITION_BUTTON_HOVER,  # Enable hover effect
-    # command= create_petition # type: ignore
-)
-# Place the button in the grid
-petition_button.grid(
-    row=PETITION_BUTTON_ROW,
-    column=PETITION_BUTTON_COLUMN,
-    sticky=PETITION_BUTTON_STICKY
-)
-
 # ======================== APPROVED TAB (NOTIFICATIONS) ========================
 # Notifications data list
 notifications = []  # List to store notification messages
